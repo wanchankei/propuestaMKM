@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHAMÁN — Propuesta MKM</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --bg:#050505; --bg2:#0a0a0a;
+  --cyan:#369FE0; --magenta:#EB63DB;
+  --white:#F0F0F0; --muted:rgba(240,240,240,0.45);
+  --border:rgba(255,255,255,0.07); --card-bg:rgba(255,255,255,0.03);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--white);font-family:'Space Grotesk',sans-serif;height:100%;overflow:hidden;}
+
+/* DECK */
+.deck{width:100vw;height:100vh;position:relative;overflow:hidden;}
+.slide{position:absolute;inset:0;width:100%;height:100%;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .42s ease,transform .42s ease;transform:translateY(16px);overflow:hidden;}
+.slide.active{opacity:1;pointer-events:all;transform:translateY(0);}
+.slide.exit{opacity:0;transform:translateY(-16px);}
+
+/* TOP BAR */
+.top-bar{display:flex;justify-content:space-between;align-items:center;padding:16px 48px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.logo{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.16em;color:var(--cyan);text-transform:uppercase;}
+.meta-lbl{font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;font-family:'Space Mono',monospace;}
+
+/* BODY */
+.slide-body{flex:1;padding:36px 48px;display:flex;flex-direction:column;justify-content:center;overflow:hidden;}
+
+/* BOTTOM NAV */
+.bot{flex-shrink:0;padding:12px 48px;display:flex;align-items:center;gap:14px;border-top:1px solid var(--border);}
+.s-ctr{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;flex-shrink:0;min-width:44px;}
+.p-track{flex:1;height:1px;background:var(--border);position:relative;}
+.p-fill{position:absolute;left:0;top:0;height:1px;background:linear-gradient(90deg,var(--cyan),var(--magenta));transition:width .5s ease;}
+.dots{display:flex;gap:5px;flex-shrink:0;}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--border);border:1px solid rgba(255,255,255,0.12);cursor:pointer;transition:background .25s;}
+.dot.on{background:var(--cyan);border-color:var(--cyan);}
+.arr-nav{display:flex;gap:6px;flex-shrink:0;}
+.ab{width:30px;height:30px;background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:border-color .2s,color .2s;font-family:'Space Mono',monospace;}
+.ab:hover{border-color:var(--cyan);color:var(--cyan);}
+
+/* TYPE */
+.snum{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:16px;}
+.tag{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:4px 9px;border:1px solid var(--border);color:var(--muted);margin-bottom:14px;}
+.tag.c{border-color:rgba(54,159,224,.3);color:var(--cyan);}
+.tag.m{border-color:rgba(235,99,219,.3);color:var(--magenta);}
+h2{font-family:'Space Mono',monospace;font-size:clamp(22px,3.2vw,42px);font-weight:700;line-height:1.05;letter-spacing:-.02em;text-transform:uppercase;margin-bottom:14px;}
+.ac{color:var(--cyan);} .am{color:var(--magenta);} .gh{color:rgba(240,240,240,.1);}
+p.lead{font-size:clamp(12px,1.3vw,15px);line-height:1.7;color:var(--muted);max-width:500px;}
+.divl{width:100%;height:1px;background:var(--border);margin:14px 0;}
+.gl{width:56px;height:1px;background:var(--cyan);box-shadow:0 0 10px var(--cyan);margin-bottom:14px;}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+/* CARD */
+.card{background:var(--card-bg);border:1px solid var(--border);padding:18px 20px;}
+.card.hl{border-color:rgba(54,159,224,.25);background:rgba(54,159,224,.04);}
+.card.hm{border-color:rgba(235,99,219,.25);background:rgba(235,99,219,.04);}
+.cnum{font-family:'Space Mono',monospace;font-size:24px;font-weight:700;color:var(--cyan);margin-bottom:5px;}
+.cnum.m{color:var(--magenta);}
+.ctit{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;}
+.cdesc{font-size:11px;line-height:1.65;color:var(--muted);}
+
+/* SPLIT */
+.split{flex:1;display:grid;grid-template-columns:1fr 1fr;overflow:hidden;}
+.sl{padding:32px 32px 32px 48px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;overflow-y:auto;}
+.sr{padding:32px 48px 32px 32px;display:flex;flex-direction:column;justify-content:center;overflow-y:auto;}
+
+/* INCLUDES */
+.inc{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:5px 20px;margin-top:10px;}
+.inc li{font-size:11px;line-height:1.5;color:var(--muted);display:flex;align-items:flex-start;gap:6px;}
+.inc li::before{content:'→';color:var(--cyan);flex-shrink:0;font-family:'Space Mono',monospace;font-size:9px;margin-top:2px;}
+
+/* ETAPA */
+.etapa{display:flex;gap:18px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--border);}
+.etapa:last-child{border-bottom:none;}
+.enum{font-family:'Space Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:.1em;flex-shrink:0;padding-top:2px;}
+.ebody h3{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;color:var(--white);}
+.ebody p{font-size:11px;line-height:1.6;color:var(--muted);}
+
+/* SRV ROW */
+.srow{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--border);}
+.srow:first-child{border-top:1px solid var(--border);}
+.sn{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);flex-shrink:0;}
+.st{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;flex:1;}
+.sbadge{font-family:'Space Mono',monospace;font-size:8px;padding:3px 7px;border:1px solid rgba(54,159,224,.3);color:var(--cyan);flex-shrink:0;letter-spacing:.08em;}
+.sbadge.off{border-color:rgba(235,99,219,.2);color:var(--magenta);}
+
+/* STEP */
+.steps{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
+.step{display:flex;gap:12px;align-items:flex-start;padding:12px;background:var(--card-bg);border:1px solid var(--border);}
+.sico{width:24px;height:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;color:var(--bg);background:var(--cyan);}
+.sico.m{background:var(--magenta);}
+.sbod h4{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+.sbod p{font-size:10px;line-height:1.55;color:var(--muted);}
+
+/* QUOTE */
+.qt{border-left:2px solid var(--cyan);padding:12px 18px;background:rgba(54,159,224,.03);margin:14px 0;}
+.qt p{font-size:11px;line-height:1.75;color:rgba(240,240,240,.7);font-style:italic;}
+
+/* FORM CARD */
+.fcard{background:rgba(54,159,224,.05);border:1px solid rgba(54,159,224,.22);padding:20px 24px;}
+.fcard .flbl{font-family:'Space Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:.12em;margin-bottom:8px;}
+.furl{font-family:'Space Mono',monospace;font-size:12px;color:var(--cyan);text-decoration:none;display:flex;align-items:center;gap:7px;transition:color .2s;}
+.furl:hover{color:#fff;}
+.fuico{width:18px;height:18px;border:1px solid rgba(54,159,224,.4);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;}
+.fsub{font-size:10px;color:var(--muted);margin-top:6px;}
+
+/* EXT LINK */
+a.el{color:var(--cyan);text-decoration:none;font-size:11px;font-family:'Space Mono',monospace;letter-spacing:.06em;display:inline-flex;align-items:center;gap:5px;transition:color .2s;}
+a.el:hover{color:#fff;}
+a.el .a{font-size:9px;opacity:.7;}
+
+/* PLAZO CARD */
+.pcard{padding:14px 16px;border:1px solid rgba(54,159,224,.2);background:rgba(54,159,224,.04);display:flex;align-items:center;gap:12px;margin-top:14px;}
+.pnum{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--cyan);}
+.pbod .pt{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;}
+.pbod .ps{font-size:10px;color:var(--muted);line-height:1.5;margin-top:2px;}
+
+/* COVER */
+.cv{flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:32px 48px 28px;overflow:hidden;}
+.cv-eye{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.cv-eye span{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;}
+.cv-eye .sep{color:var(--border);}
+.cvh{font-family:'Space Mono',monospace;font-size:clamp(40px,7vw,92px);font-weight:700;line-height:.91;letter-spacing:-.04em;text-transform:uppercase;}
+.cvs{font-size:clamp(12px,1.2vw,14px);line-height:1.7;color:var(--muted);max-width:440px;margin-top:18px;}
+.cvf{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;}
+.ctabtn{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;padding:10px 20px;background:var(--cyan);color:var(--bg);border:none;font-weight:700;display:inline-flex;align-items:center;gap:6px;transition:background .15s;text-decoration:none;}
+.ctabtn:hover{background:#fff;}
+.ctabtn.out{background:transparent;color:var(--cyan);border:1px solid rgba(54,159,224,.4);}
+.ctabtn.out:hover{background:rgba(54,159,224,.08);}
+
+/* GRAIN */
+.grain{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.02;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px;}
+
+/* MOBILE */
+@media(max-width:680px){
+  .top-bar,.slide-body,.cv,.bot{padding-left:18px;padding-right:18px;}
+  .sl{padding:22px 18px 14px;border-right:none;border-bottom:1px solid var(--border);}
+  .sr{padding:14px 18px 22px;}
+  h2{font-size:clamp(20px,6.5vw,32px);}
+  .cvh{font-size:clamp(36px,10vw,64px);}
+  .g2,.g3{grid-template-columns:1fr;}
+  .split{grid-template-columns:1fr;}
+  .inc{grid-template-columns:1fr;}
+  .meta-lbl{display:none;}
+  .dots{display:none;}
+  .cvf{flex-direction:column;align-items:flex-start;}
+  .slide-body{padding-top:24px;padding-bottom:24px;}
+  .bot{flex-wrap:wrap;gap:8px;}
+}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="deck">
+
+<!-- S0 COVER -->
+<div class="slide active" id="s0">
+  <div class="top-bar"><div class="logo">CHAMÁN®</div><div class="meta-lbl">Propuesta Comercial · 2026</div></div>
+  <div class="cv">
+    <div class="cv-eye"><span>Presentación</span><span class="sep">·</span><span>Para: MKM</span><span class="sep">·</span><span>Buenos Aires, AR</span></div>
+    <div>
+      <div class="cvh">Construimos<br><span class="ac">portales.</span><br><span class="gh">No webs.</span></div>
+      <p class="cvs">Una propuesta en 3 etapas para llevar la presencia digital de MKM al nivel que su trayectoria merece.</p>
+    </div>
+    <div class="cvf">
+      <div><div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;">Para: MKM</div><div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px;">vision@agenciachaman.com</div></div>
+      <button class="ctabtn" onclick="goTo(1)">Ver propuesta →</button>
+    </div>
+  </div>
+  <div class="bot"><span class="s-ctr">01/09</span><div class="p-track"><div class="p-fill" style="width:11.1%"></div></div><div class="dots" id="d0"></div><div class="arr-nav"><button class="ab" onclick="prev()">←</button><button class="ab" onclick="next()">→</button></div></div>
+</div>
+
+<!-- S1 CONTEXTO -->
+<div class="slide" id="s1">
+  <div class="top-bar"><div class="logo">CHAMÁN®</div><div class="meta-lbl">El punto de partida</div></div>
+  <div class="slide-body">
+    <div class="snum">— 02 / 09</div>
+    <div class="tag c">Situación actual</div>
+    <h2>Trayectoria real.<br><span style="color:var(--muted)">Presencia digital</span><br><span class="ac">a la altura.</span></h2>
+    <div class="divl"></div>
+    <p class="lead">MKM tiene capacidad técnica, experiencia y proyectos concretos. Lo que falta es una vitrina digital que los represente fielmente desde el primer clic.</p>
+    <div class="qt"><p>"La diferencia entre bueno y extraordinario no es suerte. Es decisión."</p></div>
+  </div>
+  <div class="bot"><span class="s-ctr">02/09</span><div class="p-track"><div class="p-fill" style="width:22.2%"></div></div><div class="dots" id="d1"></div><div class="arr-nav"><button class="ab" onclick="prev()">←</button><button class="ab" onclick="next()">→</button></div></div>
+</div>
+
+<!-- S2 3 ETAPAS -->
+<div class="slide" id="s2">
+  <div class="top-bar"><div class="logo">CHAMÁN®</div><div class="meta-lbl">Hoja de ruta</div></div>
+  <div class="slide-body">
+    <div class="snum">— 03 / 09</div>
+    <div class="tag">Plan de trabajo</div>
+    <h2 style="margin-bottom:20px;">3 etapas.<br><span class="ac">Un proceso claro.</span></h2>
+    <div class="g3">
+      <div class="card hl"><div class="cnum">01</div><div class="ctit">Sitio web</div><div class="cdesc">Landing page o institucional completo. Online y profesional desde el primer momento.</div></div>
+      <div class="card"><div class="cnum" style="color:var(--muted)">02</div><div class="ctit">Expansión visual</div><div class="cdesc">Más páginas, fotos de obra reales, equipos y portfolio de proyectos.</div></div>
+      <div class="card"><div class="cnum" style="color:var(--muted)">03</div><div class="ctit">Funcionalidades</div><div class="cdesc">Cotizador y formulario avanzado cuando los parámetros internos estén definidos.</div></div>
+    </div>
+    <p style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-top:12px;letter-spacing:.07em;">Cada presupuesto llega en el momento justo · Sin sorpresas · Sin costos inflados</p>
+  </div>
+  <div class="bot"><span class="s-ctr">03/09</span><div class="p-track"><div class="p-fill" style="width:33.3%"></div></div><div class="dots" id="d2"></div><div class="arr-nav"><button class="ab" onclick="prev()">←</button><button class="ab" onclick="next()">→</button></div></div>
+</div>
+
+<!-- S3 ETAPA 01 SITIO WEB -->
+<div class="slide" id="s3">
+  <div class="top-bar"><div class="logo">CHAMÁN®</div><div class="meta-lbl">Etapa 01</div></div>
+  <div class="split">
+    <div class="sl">
+      <div class="snum">— 04 / 09</div>
+      <div class="tag c">Etapa 01 — Sitio web</div>
+      <h2>Presencia<br><span class="ac">online</span><br>desde hoy.</h2>
+      <div class="divl"></div>
+      <p style="font-size:12px;line-height:1.7;color:var(--muted);margin-bottom:8px;">Recomendación: <strong style="color:var(--white)">landing page</strong> para arrancar rápido. O directamente el sitio institucional completo.</p>
+      <p style="font-size:11px;color:var(--muted);">Plataforma: <strong style="color:var(--white)">WordPress</strong> — gestión propia, sin depender de nosotros para actualizar contenido.</p>
+      <div class="pcard">
+        <div class="pnum">2–3</div>
+        <div class="pbod"><div class="pt">Semanas de entrega</div><div class="ps">Desde aprobación del diseño. Generalmente menos — el margen cubre revisiones.</div></div>
+      </div>
+      <div style="margin-top:14px;padding:12px 14px;background:rgba(54,159,224,.04);border:1px solid rgba(54,159,224,.15);">
+        <p style="font-family:'Space Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:.1em;margin-bottom:8px;">TRABAJOS DE REFERENCIA</p>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <a class="el" href="https://eneldo.com.ar" target="_blank" rel="noopener">eneldo.com.ar <span class="a">↗</span></a>
+          <a class="el" href="https://atlashousing.com.ar" target="_blank" rel="noopener">atlashousing.com.ar <span class="a">↗</span></a>
+          <a class="el" href="https://luzwaydistribuidora.com.ar" target="_blank" rel="noopener">luzwaydistribuidora.com.ar <span class="a">↗</span></a>
+        </div>
+      </div>
+    </div>
+    <div class="sr">
+      <p style="font-family:'Space Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;">Incluye en ambas opciones</p>
+      <ul class="inc">
+        <li>Diseño responsive (mobile + desktop)</li><li>Formulario de contacto</li>
+        <li>WhatsApp · Instagram · LinkedIn</li><li>SEO on-page básico</li>
+        <li>Optimización de velocidad</li><li>Capacitación de gestión</li>
+        <li>Alojamiento web</li><li>Mantenimiento mensual</li>
+      </ul>
+      <div class="divl"></div>
+      <div style="padding:14px 16px;background:rgba(54,159,224,.04);border:1px solid rgba(54,159,224,.15);">
+        <p style="font-family:'Space Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:.1em;margin-bottom:6px;">PRESUPUESTO</p>
+        <p style="font-size:11px;line-height:1.65;color:var(--muted);">Una vez que nos cuenten qué opción prefieren, enviamos la propuesta detallada con el costo completo.</p>
+      </div>
+    </div>
+  </div>
+  <div class="bot"><span class="s-ctr">04/09</span><div class="p-track"><div class="p-fill" style="width:44.4%"></div></div><div class="dots" id="d3"></div><div class="arr-nav"><button class="ab" onclick="prev()">←</button><button class="ab" onclick="next()">→</button></div></div>
+</div>
+
+<!-- S4 ETAPAS 2+3 -->
+<div class="slide" id="s4">
+  <div class="top-bar"><div class="logo">CHAMÁN®</div><div class="meta-lbl">Etapas 02 + 03</div></div>
+  <div class="slide-body">
+    <div class="snum">— 05 / 09</div>
+    <div class="tag">Expansión + funcionalidades</div>
+    <h2 style="margin-bottom:20px;">El sitio<br><span class="ac">crece con MKM.</span></h2>
+    <div class="g2">
+      <div>
+        <div class="etapa"><div class="enum">02 →</div><div class="ebody"><h3>Expansión visual</h3><p>Páginas adicionales, fotos de obra, equipos, instalaciones y portfolio de proyectos. Más profundidad = más confianza.</p></div></div>
+        <div class="etapa"><div class="enum">03 →</div><div class="ebody"><h3>Cotizador + formulario avanzado</h3><p>Cuando los parámetros internos estén definidos, lo encaramos juntos. Primero bien, después rápido.</p></div></div>
+      </div>
+      <div class="card hl" style="padding:20px;">
+        <p style="font-family:'Space Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:.12em;margin-bottom:12px;">FILOSOFÍA DE PRESUPUESTOS</p>
+        <p style="font-size:12px;line-height:1.75;color:rgba(240,240,240,.7);">No mandamos el costo total de todo por adelantado. Cada presupuesto llega cuando corresponde, con el detalle exacto de lo que vamos a hacer.</p>
+        <div style="margin-top:14px;width:32px;height:1px;background:var(--cyan);"></div>
+        <p style="font-size:10px;color:var(--muted);margin-top:8px;font-family:'Space Mono',monospace;letter-spacing:.07em;">Transparencia total.</p>
+      </div>
+    </div>
+  </div>
+  <div class="bot"><span class="s-ctr">05/09</span><div class="p-track"><div class="p-fill" style="width:55.5%"></div></div><div class="dots" id="d4"></div><div class="arr-nav"><button class="ab" onclick="prev()">←</button><button class="ab" onclick="next()">→</button></div></div>
+</div>
+
+<!-- S5 CONTENIDO REDES -->
+<div class="slide" id="s5">
+  <div class="top-bar"><div class="logo">CHAMÁN®</div><div class="meta-lbl">Contenido para redes</div></div>
+  <div class="slide-body">
+    <div class="snum">— 06 / 09</div>
+    <div class="tag m">Contenido digital</div>
+    <h2 style="margin-bottom:18px;">Del material<br><span class="am">en crudo</span><br>a la pieza final.</h2>
+    <div class="steps">
+      <div class="step"><div class="sico m">01</div><div class="sbod"><h4>Nos mandan el material</h4><p>Videos, fotos de obra, equipos — lo que tengan. Sin editar, sin preparar.</p></div></div>
+      <div class="step"><div class="sico m">02</div><div class="sbod"><h4>Pieza de muestra sin costo</h4><p>Reel, historia, carrusel o posteo. Para que vean el resultado antes de comprometerse.</p></div></div>
+      <div class="step"><div class="sico m">03</div><div class="sbod"><h4>Piezas por encargo → plan mensual</h4><p>Arrancamos con pedidos sueltos y escalamos a un plan mensual completo cuando quieran.</p></div></div>
+    </div>
+  </div>
+  <div class="bot"><span class="s-ctr">06/09</span><div class="p-track"><div class="p-fill" style="width:66.6%"></div></div><div class="dots" id="d5"></div><div class="arr-nav"><button class="ab" onclick="prev()">←</button><button class="ab" onclick="next()">→</button></div></div>
+</div>
+
+<!-- S6 META ADS -->
+<div class="slide" id="s6">
+  <div class="top-bar"><div class="logo">CHAMÁN®</div><div class="meta-lbl">Campañas pagas</div></div>
+  <div class="split">
+    <div class="sl">
+      <div class="snum">— 07 / 09</div>
+      <div class="tag m">Meta Ads / Campañas pagas</div>
+      <h2>Transparencia<br><span class="am">ante todo.</span></h2>
+      <div class="divl"></div>
+      <p style="font-size:12px;line-height:1.75;color:var(--muted);">Queremos ser directos: <strong style="color:var(--white)">por el momento no hacemos campañas pagas.</strong></p>
+      <p style="font-size:12px;line-height:1.75;color:var(--muted);margin-top:9px;">Es un área que estamos desarrollando internamente y preferimos no ofrecer algo que no estemos en condiciones de hacer bien.</p>
+      <p style="font-size:12px;line-height:1.75;color:var(--muted);margin-top:9px;">Lo estamos incorporando activamente — es muy probable que en un futuro cercano lo podamos sumar.</p>
+    </div>
+    <div class="sr">
+      <div class="gl" style="background:var(--magenta);box-shadow:0 0 10px var(--magenta);"></div>
+      <p style="font-size:9px;font-family:'Space Mono',monospace;color:var(--magenta);letter-spacing:.1em;margin-bottom:14px;text-transform:uppercase;">Lo que sí podemos hacer hoy</p>
+      <div class="srow"><div class="sn">01</div><div class="st">Sitio optimizado para conversión</div><div class="sbadge">✓ Ya</div></div>
+      <div class="srow"><div class="sn">02</div><div class="st">SEO on-page desde el día 1</div><div class="sbadge">✓ Ya</div></div>
+      <div class="srow"><div class="sn">03</div><div class="st">Contenido para redes sociales</div><div class="sbadge">✓ Ya</div></div>
+      <div class="srow"><div class="sn">04</div><div class="st">Campañas Meta Ads</div><div class="sbadge off">Próximo</div></div>
+      <div class="qt" style="margin-top:14px;border-left-color:var(--magenta);background:rgba(235,99,219,.03);">
+        <p>Un sitio bien hecho con buen SEO genera tráfico de calidad antes de invertir un peso en publicidad paga.</p>
+      </div>
+    </div>
+  </div>
+  <div class="bot"><span class="s-ctr">07/09</span><div class="p-track"><div class="p-fill" style="width:77.7%"></div></div><div class="dots" id="d6"></div><div class="arr-nav"><button class="ab" onclick="prev()">←</button><button class="ab" onclick="next()">→</button></div></div>
+</div>
+
+<!-- S7 PROXIMOS PASOS -->
+<div class="slide" id="s7">
+  <div class="top-bar"><div class="logo">CHAMÁN®</div><div class="meta-lbl">Próximos pasos</div></div>
+  <div class="split">
+    <div class="sl">
+      <div class="snum">— 08 / 09</div>
+      <div class="tag c">Para arrancar</div>
+      <h2>Una<br>decisión<br><span class="ac">simple.</span></h2>
+      <div class="divl"></div>
+      <p style="font-size:12px;line-height:1.7;color:var(--muted);">¿Arrancamos con la landing page o directamente con el sitio institucional completo?</p>
+      <p style="font-size:11px;color:var(--muted);margin-top:10px;">A partir de ahí armamos la propuesta detallada y enviamos el formulario de briefing.</p>
+      <div style="margin-top:16px;">
+        <div class="srow"><div class="sn">A</div><div class="st">Landing page</div><div class="sbadge">2–3 sem.</div></div>
+        <div class="srow"><div class="sn">B</div><div class="st">Sitio institucional completo</div><div class="sbadge">2–3 sem.</div></div>
+      </div>
+    </div>
+    <div class="sr">
+      <div class="gl"></div>
+      <p style="font-family:'Space Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px;">Formulario de briefing</p>
+      <p style="font-size:11px;line-height:1.7;color:var(--muted);margin-bottom:16px;">Junto con la decisión, completar el formulario. Cuanto más detallado, más alineado va a estar el resultado con lo que buscan.</p>
+      <div class="fcard">
+        <div class="flbl">Acceder al formulario</div>
+        <a class="furl" href="https://tally.so/r/nGL4Eo" target="_blank" rel="noopener"><div class="fuico">↗</div>tally.so/r/nGL4Eo</a>
+        <p class="fsub">Formulario privado · ~5 minutos</p>
+      </div>
+      <div class="divl"></div>
+      <p style="font-size:10px;color:var(--muted);line-height:1.6;font-family:'Space Mono',monospace;letter-spacing:.05em;">Algunas preguntas pueden parecer repetitivas. Cuanto más completo, mejor el resultado final.</p>
+    </div>
+  </div>
+  <div class="bot"><span class="s-ctr">08/09</span><div class="p-track"><div class="p-fill" style="width:88.8%"></div></div><div class="dots" id="d7"></div><div class="arr-nav"><button class="ab" onclick="prev()">←</button><button class="ab" onclick="next()">→</button></div></div>
+</div>
+
+<!-- S8 CIERRE -->
+<div class="slide" id="s8">
+  <div class="top-bar"><div class="logo">CHAMÁN®</div><div class="meta-lbl">Hablemos</div></div>
+  <div class="cv">
+    <div class="cv-eye"><span>vision@agenciachaman.com</span><span class="sep">·</span><span>Buenos Aires, Argentina</span></div>
+    <div>
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px;">¿Listo para empezar?</div>
+      <div class="cvh">Invocar<br><span class="ac">el ritual.</span></div>
+      <p class="cvs">No construimos webs. Construimos portales. Y estamos listos para construir el suyo.</p>
+      <div style="margin-top:22px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <a href="https://tally.so/r/nGL4Eo" target="_blank" rel="noopener" class="ctabtn">Completar briefing ↗</a>
+        <a href="mailto:chamansolutions@gmail.com" class="ctabtn out">Escribirnos ↗</a>
+      </div>
+    </div>
+    <div class="cvf">
+      <div><div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;">CHAMÁN® — Cyber-Shamanism Agency</div><div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px;">©2026 Todos los derechos reservados</div></div>
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.1em;">09 / 09</div>
+    </div>
+  </div>
+  <div class="bot"><span class="s-ctr">09/09</span><div class="p-track"><div class="p-fill" style="width:100%"></div></div><div class="dots" id="d8"></div><div class="arr-nav"><button class="ab" onclick="prev()">←</button><button class="ab" onclick="next()">→</button></div></div>
+</div>
+
+</div><!-- /deck -->
+<script>
+const N=9; let cur=0,busy=false;
+function mkDots(){for(let s=0;s<N;s++){const id=s===0?'d0':'d'+s;const el=document.getElementById(id);if(!el)continue;el.innerHTML='';for(let i=0;i<N;i++){const d=document.createElement('div');d.className='dot'+(i===cur?' on':'');d.onclick=(function(x){return()=>goTo(x);})(i);el.appendChild(d);}}}
+function goTo(i){if(busy||i===cur||i<0||i>=N)return;busy=true;const f=document.getElementById('s'+cur),t=document.getElementById('s'+i);f.classList.add('exit');setTimeout(()=>{f.classList.remove('active','exit');t.classList.add('active');cur=i;mkDots();setTimeout(()=>{busy=false;},460);},270);}
+function next(){goTo(cur+1);}function prev(){goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')next();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prev();if(e.key==='Escape')goTo(0);});
+let tx=0;document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});document.addEventListener('touchend',e=>{const d=tx-e.changedTouches[0].clientX;if(Math.abs(d)>50)d>0?next():prev();});
+mkDots();
+</script>
+</body>
+</html>
